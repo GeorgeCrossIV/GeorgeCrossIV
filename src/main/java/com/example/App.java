@@ -40,7 +40,7 @@ public final class App {
 
             List<Row> rows = GetPartition("testkey");
    
-            //ClonePartition(rows, Integer.parseInt(properties.getProperty("numberOfPartitions")));
+            ClonePartition(rows, Integer.parseInt(properties.getProperty("numberOfPartitions")));
         } catch (Exception e) {
             e.printStackTrace();
         }
