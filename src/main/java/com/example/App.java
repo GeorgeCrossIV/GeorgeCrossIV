@@ -1,4 +1,10 @@
 package com.example;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.util.Properties;
+import java.io.InputStream;
+import java.io.IOException;
+
 import java.net.InetSocketAddress;
 import java.util.UUID;
 import java.util.List;
@@ -25,22 +31,31 @@ public final class App {
      * @param args The arguments of the program.
      */
     public static void main(String[] args) {
-         ConnectToCluster();
 
-         List<Row> rows = GetPartition("testkey");
+        try (FileReader reader = new FileReader("resources/config.properties")) {
+            Properties properties = new Properties();
+            properties.load(reader);
 
-         ClonePartition(rows, 1);
+            ConnectToCluster(properties);
+
+            List<Row> rows = GetPartition("testkey");
+   
+            //ClonePartition(rows, Integer.parseInt(properties.getProperty("numberOfPartitions")));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    
+
     }
 
-    private static void ConnectToCluster() {
+    private static void ConnectToCluster(Properties properties) {
 		// create a cluster instance
 
         _Session = CqlSession.builder()
-            .addContactPoint(new InetSocketAddress("127.0.0.1", 9042))
-            .withLocalDatacenter("SearchGraph")
-            .withKeyspace("athena")
+            .addContactPoint(new InetSocketAddress(properties.getProperty("contactPoint"), 9042))
+            .withLocalDatacenter(properties.getProperty("dataCenter"))
+            .withKeyspace(properties.getProperty("keyspace"))
             .build();
-    // CqlSession _Session = CqlSession.builder().build();
 		
 		// Open a session with the cluster
 	    ResultSet rs = _Session.execute("select release_version from system.local");              // (2)
@@ -65,7 +80,7 @@ public final class App {
                     rows.get(i).getByteBuffer("value")
                 );
                 blob.print();
-            
+             
             }
         }
 
